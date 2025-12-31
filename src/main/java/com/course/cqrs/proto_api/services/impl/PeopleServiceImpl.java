@@ -5,10 +5,7 @@ import com.course.cqrs.proto_api.services.PeopleService;
 import com.github.javafaker.Faker;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class PeopleServiceImpl implements PeopleService {
@@ -24,14 +21,26 @@ public class PeopleServiceImpl implements PeopleService {
     }
 
     @Override
-    public Optional<Person> getPersonBy(String id) {
-        return Optional.empty();
+    public Optional<Person> getPersonById(String id) {
+        return listOfPeople.stream()
+                .filter(person -> person.getId().equals(id))
+                .findFirst();
     }
+
 
     @Override
     public Person createPerson(Person person) {
-        return null;
+        Person newPerson = Person.builder()
+                .id(UUID.randomUUID().toString())
+                .fullName(person.getFullName())
+                .age(person.getAge())
+                .birthDate(person.getBirthDate())
+                .build();
+
+        listOfPeople.add(newPerson);
+        return newPerson;
     }
+
 
     @Override
     public Person updatePerson(String id, Person person) {
@@ -40,7 +49,10 @@ public class PeopleServiceImpl implements PeopleService {
 
     @Override
     public void deletePerson(String id) {
+        Person person = getPersonById(id)
+                .orElseThrow(() -> new NoSuchElementException("Element not found"));
 
+        listOfPeople.remove(person);
     }
 
     @Override

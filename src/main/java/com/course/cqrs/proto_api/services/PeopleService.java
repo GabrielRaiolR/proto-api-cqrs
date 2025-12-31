@@ -9,7 +9,7 @@ public interface PeopleService {
 
     List<Person> getPeople();
 
-    Optional<Person> getPersonBy(String id);
+    Optional<Person> getPersonById(String id);
 
     Person createPerson(Person person);
 

@@ -5,7 +5,10 @@ import com.course.cqrs.proto_api.services.PeopleService;
 import com.github.javafaker.Faker;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PeopleServiceImpl implements PeopleService {
@@ -44,7 +47,28 @@ public class PeopleServiceImpl implements PeopleService {
 
     @Override
     public Person updatePerson(String id, Person person) {
-        return null;
+        Optional<Person> personToUpdate = getPersonById(id);
+
+        if (personToUpdate.isEmpty()) {
+            throw new RuntimeException("Person not found");
+        }
+
+        listOfPeople.remove(personToUpdate.get());
+
+        Person updatedPerson = changePerson(id, person);
+        listOfPeople.add(updatedPerson);
+
+        return updatedPerson;
+    }
+
+
+    private Person changePerson(String personId, Person person) {
+        return Person.builder()
+                .id(personId)
+                .fullName(person.getFullName())
+                .birthDate(person.getBirthDate())
+                .age(person.getAge())
+                .build();
     }
 
     @Override
@@ -57,7 +81,13 @@ public class PeopleServiceImpl implements PeopleService {
 
     @Override
     public List<Person> getPeopleByName(String name) {
-        return List.of();
+        return listOfPeople
+                .stream()
+                .filter(person ->
+                        person.getFullName()
+                                .toLowerCase()
+                                .contains(name.toLowerCase()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -67,15 +97,21 @@ public class PeopleServiceImpl implements PeopleService {
         listOfPeople.clear();
 
         for (int i = 0; i < quantity; i++) {
+
+            Date date = faker.date().birthday();
+
+            LocalDate birthDate = date.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
             Person person = Person.builder()
                     .id(UUID.randomUUID().toString())
                     .fullName(faker.name().fullName())
-                    .birthDate(faker.date().birthday())
+                    .birthDate(birthDate)
                     .age(faker.number().numberBetween(1, 100))
                     .build();
 
             listOfPeople.add(person);
         }
     }
-
 }
